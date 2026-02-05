@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Real-time Web Interface</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-header h2 {
+      font-size: 1.2em;
+      margin: 0;
+      text-align: center;
+    }
+
+    .chat-history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .chat-history-item {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      cursor: pointer;
+      word-break: break-word;
+      transition: background 0.3s ease;
+    }
+
+    .chat-history-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .chat-history-item.active {
+      background: #3498db;
+    }
+
+    .chat-history-item .timestamp {
+      font-size: 0.7em;
+      opacity: 0.7;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .new-chat-btn {
+      margin: 10px;
+      padding: 12px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .new-chat-btn:hover {
+      background: #2980b9;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      height: 90vh;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      min-width: 300px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.5em;
+      margin-bottom: 5px;
+    }
+
+    .header .status {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .status-connected {
+      background-color: #4caf50;
+    }
+
+    .status-disconnected {
+      background-color: #f44336;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #fafafa;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      line-height: 1.5;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      background: #dcf8c6;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .assistant-message {
+      background: white;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .input-container {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+    }
+
+    #message-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      resize: none;
+      height: 60px;
+      font-family: inherit;
+      font-size: 1em;
+    }
+
+    #message-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+
+    #send-button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #send-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    #send-button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .typing-indicator {
+      display: none;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 18px;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .typing-indicator span {
+      height: 8px;
+      width: 8px;
+      float: left;
+      margin: 0 2px;
+      background-color: #9E9EA1;
+      display: block;
+      border-radius: 50%;
+      opacity: 0.4;
+    }
+
+    .typing-indicator span:nth-of-type(1) {
+      animation: typing 1s infinite;
+    }
+
+    .typing-indicator span:nth-of-type(2) {
+      animation: typing 1s infinite 0.2s;
+    }
+
+    .typing-indicator span:nth-of-type(3) {
+      animation: typing 1s infinite 0.4s;
+    }
+
+    @keyframes typing {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .error-message {
+      color: #f44336;
+      font-size: 0.9em;
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    .sidebar-toggle {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      z-index: 5;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        left: -250px;
+        transition: left 0.3s ease;
+      }
+      
+      .sidebar.active {
+        left: 0;
+      }
+      
+      .sidebar-toggle {
+        display: block;
+      }
+      
+      .container {
+        height: 100vh;
+        border-radius: 0;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar for chat history -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>聊天历史</h2>
+    </div>
+    <div class="chat-history-list" id="chat-history-list">
+      <!-- Chat history items will be added here dynamically -->
+    </div>
+    <button class="new-chat-btn" id="new-chat-btn">新建聊天</button>
+  </div>
+  
+  <!-- Toggle button for mobile -->
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  
+  <!-- Main content area -->
+  <div class="main-content">
+    <div class="container">
+      <div class="header">
+        <h1>OpenClaw Real-time Web Interface</h1>
+        <div class="connection-status">
+          <div class="status-indicator status-disconnected" id="status-indicator"></div>
+          <div class="status" id="connection-status">正在连接...</div>
+        </div>
+      </div>
+      
+      <div class="chat-container" id="chat-container">
+        <div class="message assistant-message">
+          您好！正在连接到本地OpenClaw实例...
+        </div>
+      </div>
+      
+      <div class="typing-indicator" id="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      
+      <div class="input-container">
+        <textarea 
+          id="message-input" 
+          placeholder="输入您的消息... (按 Enter 发送，按 Shift+Enter 换行)"
+          disabled
+        ></textarea>
+        <button id="send-button" disabled>发送</button>
+      </div>
+      
+      <div id="error-message" class="error-message"></div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const chatContainer = document.getElementById('chat-container');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const connectionStatus = document.getElementById('connection-status');
+    const statusIndicator = document.getElementById('status-indicator');
+    const errorMessage = document.getElementById('error-message');
+    const chatHistoryList = document.getElementById('chat-history-list');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    
+    // WebSocket connection
+    let socket;
+    let isConnected = false;
+    let currentChatId = null;
+    let currentChatTitle = null;
+    
+    // Initialize chat system
+    function initChatSystem() {
+      loadChatHistory();
+      initWebSocket();
+    }
+    
+    // Load chat history from localStorage
+    function loadChatHistory() {
+      const chatHistory = JSON.parse(localStorage.getItem('openclawChatHistory') || '[]');
+      chatHistoryList.innerHTML = '';
+      
+      chatHistory.forEach(chat => {
+        const chatItem = document.createElement('div');
+        chatItem.classList.add('chat-history-item');
+        if (chat.id === currentChatId) {
+          chatItem.classList.add('active');
+        }
+        chatItem.dataset.chatId = chat.id;
+        chatItem.innerHTML = `
+          <div>${chat.title || '未命名对话'}</div>
+          <span class="timestamp">${formatDate(chat.timestamp)}</span>
+        `;
+        chatItem.addEventListener('click', () => loadChat(chat.id));
+        chatHistoryList.appendChild(chatItem);
+      });
+    }
+    
+    // Format date for display
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString('zh-CN');
+    }
+    
+    // Create a new chat
+    function createNewChat() {
+      // Save current chat before switching
+      saveCurrentChat();
+      
+      // Create new chat
+      currentChatId = 'chat_' + Date.now();
+      currentChatTitle = '新对话';
+      chatContainer.innerHTML = '<div class="message assistant-message">您好！这是一个新的对话。</div>';
+      
+      // Update UI
+      updateActiveChatItem();
+      saveChatHistory();
+    }
+    
+    // Load a chat by ID
+    function loadChat(chatId) {
+      // Save current chat before switching
+      saveCurrentChat();
+      
+      const chatHistory = JSON.parse(localStorage.getItem('openclawChatHistory') || '[]');
+      const chat = chatHistory.find(c => c.id === chatId);
+      
+      if (chat) {
+        currentChatId = chat.id;
+        currentChatTitle = chat.title;
+        
+        // Clear current chat container and load saved messages
+        chatContainer.innerHTML = '';
+        chat.messages.forEach(msg => {
+          addMessageToDOM(msg.text, msg.sender, false); // Don't scroll to bottom when loading
+        });
+        
+        updateActiveChatItem();
+      }
+    }
+    
+    // Save current chat to localStorage
+    function saveCurrentChat() {
+      if (!currentChatId) return;
+      
+      // Get current messages from the chat container
+      const messages = [];
+      const messageElements = chatContainer.querySelectorAll('.message');
+      
+      messageElements.forEach(element => {
+        let sender = 'assistant';
+        if (element.classList.contains('user-message')) {
+          sender = 'user';
+        }
+        messages.push({
+          text: element.textContent,
+          sender: sender,
+          timestamp: Date.now()
+        });
+      });
+      
+      const chatHistory = JSON.parse(localStorage.getItem('openclawChatHistory') || '[]');
+      const existingChatIndex = chatHistory.findIndex(c => c.id === currentChatId);
+      
+      if (existingChatIndex !== -1) {
+        // Update existing chat
+        chatHistory[existingChatIndex] = {
+          id: currentChatId,
+          title: currentChatTitle || '未命名对话',
+          messages: messages,
+          timestamp: Date.now()
+        };
+      } else {
+        // Add new chat
+        chatHistory.unshift({
+          id: currentChatId,
+          title: currentChatTitle || '未命名对话',
+          messages: messages,
+          timestamp: Date.now()
+        });
+      }
+      
+      // Keep only the latest 20 chats
+      if (chatHistory.length > 20) {
+        chatHistory.splice(20);
+      }
+      
+      localStorage.setItem('openclawChatHistory', JSON.stringify(chatHistory));
+    }
+    
+    // Save chat history list to localStorage
+    function saveChatHistory() {
+      const chatHistory = JSON.parse(localStorage.getItem('openclawChatHistory') || '[]');
+      const updatedChat = chatHistory.map(chat => {
+        if (chat.id === currentChatId) {
+          return {
+            ...chat,
+            title: currentChatTitle,
+            timestamp: Date.now()
+          };
+        }
+        return chat;
+      });
+      
+      localStorage.setItem('openclawChatHistory', JSON.stringify(updatedChat));
+      loadChatHistory(); // Refresh the UI
+    }
+    
+    // Update the active chat item in the sidebar
+    function updateActiveChatItem() {
+      // Remove active class from all items
+      document.querySelectorAll('.chat-history-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Add active class to current chat
+      const currentItem = document.querySelector(`.chat-history-item[data-chat-id="${currentChatId}"]`);
+      if (currentItem) {
+        currentItem.classList.add('active');
+      }
+    }
+    
+    // Update chat title based on first user message
+    function updateChatTitle(firstUserMessage) {
+      if (currentChatId && (!currentChatTitle || currentChatTitle === '新对话' || currentChatTitle === '未命名对话')) {
+        // Use the first 30 characters of the first user message as the title
+        currentChatTitle = firstUserMessage.length > 30 ? 
+          firstUserMessage.substring(0, 30) + '...' : 
+          firstUserMessage;
+        saveChatHistory();
+      }
+    }
+    
+    // WebSocket connection
+    function initWebSocket() {
+      // Use the same protocol as the current page (ws:// or wss://)
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUri = `${protocol}//${window.location.host}`;
+      
+      try {
+        socket = new WebSocket(wsUri);
+        
+        socket.onopen = function(event) {
+          console.log('WebSocket connection established');
+          isConnected = true;
+          updateConnectionStatus(true);
+          enableInput();
+          if (chatContainer.children.length <= 1) { // Only add welcome message if it's a new session
+            addMessage('已连接到本地OpenClaw实例。现在您可以开始聊天了。', 'assistant');
+          }
+        };
+        
+        socket.onmessage = function(event) {
+          try {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'chat_response') {
+              addMessage(data.message, 'assistant');
+              hideTypingIndicator();
+            } else if (data.type === 'typing_start') {
+              showTypingIndicator();
+            } else if (data.type === 'error') {
+              addMessage(`错误: ${data.message}`, 'assistant');
+              hideTypingIndicator();
+            }
+          } catch (error) {
+            console.error('Error parsing message:', error);
+            addMessage('收到无法解析的消息', 'assistant');
+            hideTypingIndicator();
+          }
+        };
+        
+        socket.onclose = function(event) {
+          console.log('WebSocket connection closed:', event.code, event.reason);
+          isConnected = false;
+          updateConnectionStatus(false);
+          disableInput();
+          addMessage('与本地OpenClaw实例的连接已断开。正在尝试重连...', 'assistant');
+          // Attempt to reconnect after a delay
+          setTimeout(initWebSocket, 3000);
+        };
+        
+        socket.onerror = function(error) {
+          console.error('WebSocket error:', error);
+          isConnected = false;
+          updateConnectionStatus(false);
+          showError('WebSocket连接错误: ' + error.message);
+        };
+      } catch (error) {
+        console.error('Failed to create WebSocket:', error);
+        showError('无法建立WebSocket连接: ' + error.message);
+      }
+    }
+    
+    // Update connection status display
+    function updateConnectionStatus(connected) {
+      if (connected) {
+        statusIndicator.className = 'status-indicator status-connected';
+        connectionStatus.textContent = '已连接';
+      } else {
+        statusIndicator.className = 'status-indicator status-disconnected';
+        connectionStatus.textContent = '未连接';
+      }
+    }
+    
+    // Enable input fields
+    function enableInput() {
+      messageInput.disabled = false;
+      sendButton.disabled = false;
+      messageInput.placeholder = '输入您的消息... (按 Enter 发送，按 Shift+Enter 换行)';
+      hideError();
+    }
+    
+    // Disable input fields
+    function disableInput() {
+      messageInput.disabled = true;
+      sendButton.disabled = true;
+      messageInput.placeholder = '连接中...';
+    }
+    
+    // Show error message
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+    }
+    
+    // Hide error message
+    function hideError() {
+      errorMessage.style.display = 'none';
+    }
+    
+    // Add message to chat container and save to current chat
+    function addMessage(message, sender) {
+      addMessageToDOM(message, sender, true);
+      saveCurrentChat();
+    }
+    
+    // Add message to DOM only
+    function addMessageToDOM(message, sender, scrollToBottom = true) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', `${sender}-message`);
+      messageElement.textContent = message;
+      chatContainer.appendChild(messageElement);
+      
+      // Scroll to bottom if requested
+      if (scrollToBottom) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }
+    
+    // Show typing indicator
+    function showTypingIndicator() {
+      typingIndicator.style.display = 'block';
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    // Hide typing indicator
+    function hideTypingIndicator() {
+      typingIndicator.style.display = 'none';
+    }
+    
+    // Send message via WebSocket
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message || !isConnected) return;
+      
+      // Add user message to chat
+      addMessage(message, 'user');
+      
+      // Update chat title if this is the first user message in the chat
+      if (!currentChatTitle || currentChatTitle === '新对话' || currentChatTitle === '未命名对话') {
+        updateChatTitle(message);
+      }
+      
+      // Clear input and disable button
+      messageInput.value = '';
+      sendButton.disabled = true;
+      
+      // Send message via WebSocket
+      const data = {
+        type: 'chat_message',
+        message: message
+      };
+      
+      try {
+        socket.send(JSON.stringify(data));
+      } catch (error) {
+        console.error('Error sending message:', error);
+        addMessage(`发送消息时出错: ${error.message}`, 'assistant');
+        hideTypingIndicator();
+      }
+    }
+    
+    // Event listeners
+    sendButton.addEventListener('click', sendMessage);
+    
+    messageInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    // New chat button
+    newChatBtn.addEventListener('click', createNewChat);
+    
+    // Sidebar toggle for mobile
+    sidebarToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('active');
+    });
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+      const isClickInsideSidebar = sidebar.contains(event.target);
+      const isClickOnToggle = sidebarToggle.contains(event.target);
+      
+      if (!isClickInsideSidebar && !isClickOnToggle && window.innerWidth <= 768) {
+        sidebar.classList.remove('active');
+      }
+    });
+    
+    // Initialize everything when page loads
+    window.onload = function() {
+      // Initialize with a default chat if none exists
+      if (!currentChatId) {
+        currentChatId = 'chat_' + Date.now();
+        currentChatTitle = '新对话';
+      }
+      
+      initChatSystem();
+    };
+    
+    // Handle page unload to close WebSocket properly and save chat
+    window.onbeforeunload = function() {
+      saveCurrentChat();
+      if (socket) {
+        socket.close();
+      }
+    };
+    
+    // Handle visibility change to save chat when leaving the page
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') {
+        saveCurrentChat();
+      }
+    });
+  </script>
+</body>
+</html>

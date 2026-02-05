@@ -1,0 +1,33 @@
+{
+  "name": "openclaw-server",
+  "version": "1.0.0",
+  "description": "Complete OpenClaw AI Chat Server with integrated web interface and chat history",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "server": "node server-agent-based.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "openclaw",
+    "web-interface",
+    "websocket",
+    "ai",
+    "chat",
+    "chat-history"
+  ],
+  "author": "OpenClaw Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.11.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xagentlabs/openclaw-web-interface"
+  },
+  "bugs": {
+    "url": "https://github.com/0xagentlabs/openclaw-web-interface/issues"
+  },
+  "homepage": "https://github.com/0xagentlabs/openclaw-web-interface#readme"
+}

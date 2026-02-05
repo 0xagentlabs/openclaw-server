@@ -57,6 +57,9 @@
       cursor: pointer;
       word-break: break-word;
       transition: background 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .chat-history-item:hover {
@@ -67,11 +70,41 @@
       background: #3498db;
     }
 
+    .chat-history-item .chat-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .chat-history-item .chat-title {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .chat-history-item .timestamp {
       font-size: 0.7em;
       opacity: 0.7;
       display: block;
       margin-top: 4px;
+    }
+
+    .delete-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-left: 8px;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+
+    .delete-btn:hover {
+      opacity: 1;
+      background: rgba(255, 100, 100, 0.3);
     }
 
     .new-chat-btn {
@@ -412,10 +445,18 @@
         }
         chatItem.dataset.chatId = chat.id;
         chatItem.innerHTML = `
-          <div>${chat.title || '未命名对话'}</div>
-          <span class="timestamp">${formatDate(chat.timestamp)}</span>
+          <div class="chat-info">
+            <span class="chat-title">${chat.title || '未命名对话'}</span>
+            <span class="timestamp">${formatDate(chat.timestamp)}</span>
+          </div>
+          <button class="delete-btn" onclick="deleteChat('${chat.id}', event)">×</button>
         `;
-        chatItem.addEventListener('click', () => loadChat(chat.id));
+        chatItem.addEventListener('click', (e) => {
+          // Don't trigger loadChat if the delete button was clicked
+          if (!e.target.classList.contains('delete-btn')) {
+            loadChat(chat.id);
+          }
+        });
         chatHistoryList.appendChild(chatItem);
       });
     }
@@ -552,6 +593,31 @@
           firstUserMessage.substring(0, 30) + '...' : 
           firstUserMessage;
         saveChatHistory();
+      }
+    }
+    
+    // Delete a chat by ID
+    function deleteChat(chatId, event) {
+      event.stopPropagation(); // Prevent triggering the chat load event
+      
+      if (confirm('确定要删除这个对话吗？')) {
+        let chatHistory = JSON.parse(localStorage.getItem('openclawChatHistory') || '[]');
+        
+        // Remove the chat with the given ID
+        chatHistory = chatHistory.filter(chat => chat.id !== chatId);
+        
+        // Save the updated history
+        localStorage.setItem('openclawChatHistory', JSON.stringify(chatHistory));
+        
+        // If we're deleting the currently active chat, reset to a new chat
+        if (currentChatId === chatId) {
+          currentChatId = null;
+          currentChatTitle = null;
+          createNewChat(); // Create a new chat to replace the deleted one
+        }
+        
+        // Reload the chat history in the sidebar
+        loadChatHistory();
       }
     }
     

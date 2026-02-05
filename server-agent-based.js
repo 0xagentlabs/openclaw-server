@@ -15,17 +15,24 @@ app.use(express.static(path.join(__dirname)));
 let connectedClient = null;
 
 wss.on('connection', (ws, req) => {
-  console.log('New client connected from web interface');
+  console.log('New client connection attempt from:', req.socket.remoteAddress);
   
-  // Only allow one client at a time
+  // Log the previous client if exists
   if (connectedClient) {
-    ws.send(JSON.stringify({
-      type: 'error',
-      message: '另一个客户端已连接。请刷新页面重试。'
-    }));
-    ws.close();
-    return;
+    console.log('Previous client was still connected, replacing it');
   }
+  
+  // Disconnect previous client if exists
+  if (connectedClient) {
+    try {
+      connectedClient.close();
+    } catch (e) {
+      console.log('Could not close previous client connection:', e.message);
+    }
+  }
+  
+  connectedClient = ws;
+  console.log('Web interface client connected successfully');
   
   connectedClient = ws;
   console.log('Web interface client connected successfully');
@@ -36,6 +43,7 @@ wss.on('connection', (ws, req) => {
     try {
       // Parse the incoming message
       const data = JSON.parse(message.toString());
+      console.log('Parsed message type:', data.type);
       
       if (data.type === 'chat_message') {
         const userInput = data.message;
@@ -60,10 +68,12 @@ wss.on('connection', (ws, req) => {
         let errorOutput = '';
 
         openclawProcess.stdout.on('data', (data) => {
+          console.log('OpenClaw stdout:', data.toString());
           responseText += data.toString();
         });
 
         openclawProcess.stderr.on('data', (data) => {
+          console.error('OpenClaw stderr:', data.toString());
           errorOutput += data.toString();
         });
 
@@ -103,8 +113,8 @@ wss.on('connection', (ws, req) => {
     }
   });
 
-  ws.on('close', () => {
-    console.log('Web interface client disconnected');
+  ws.on('close', (code, reason) => {
+    console.log('Web interface client disconnected. Code:', code, 'Reason:', reason?.toString());
     if (connectedClient === ws) {
       connectedClient = null;
     }
@@ -112,6 +122,7 @@ wss.on('connection', (ws, req) => {
 
   ws.on('error', (error) => {
     console.error('WebSocket error:', error);
+    console.error('Error details:', error.message, error.stack);
     if (connectedClient === ws) {
       connectedClient = null;
     }

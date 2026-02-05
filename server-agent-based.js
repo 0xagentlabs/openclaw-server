@@ -33,9 +33,20 @@ wss.on('connection', (ws, req) => {
   
   connectedClient = ws;
   console.log('Web interface client connected successfully');
-  
-  connectedClient = ws;
-  console.log('Web interface client connected successfully');
+
+  // Set up heartbeat to keep connection alive
+  const heartbeatInterval = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.ping(); // Send ping to client to check if connection is still alive
+    } else {
+      clearInterval(heartbeatInterval);
+    }
+  }, 30000); // Ping every 30 seconds
+
+  ws.on('pong', () => {
+    // Client responded to ping, connection is alive
+    console.log('Client responded to heartbeat');
+  });
 
   ws.on('message', async (message) => {
     console.log('Received message from web interface');
@@ -115,6 +126,7 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', (code, reason) => {
     console.log('Web interface client disconnected. Code:', code, 'Reason:', reason?.toString());
+    clearInterval(heartbeatInterval); // Stop heartbeat when connection closes
     if (connectedClient === ws) {
       connectedClient = null;
     }
@@ -123,10 +135,17 @@ wss.on('connection', (ws, req) => {
   ws.on('error', (error) => {
     console.error('WebSocket error:', error);
     console.error('Error details:', error.message, error.stack);
+    clearInterval(heartbeatInterval); // Stop heartbeat when error occurs
     if (connectedClient === ws) {
       connectedClient = null;
     }
   });
+  
+  // Send welcome message
+  ws.send(JSON.stringify({
+    type: 'chat_response',
+    message: '已连接到OpenClaw系统，现在可以开始聊天了。'
+  }));
 });
 
 // Use port 8000 as specified in your setup

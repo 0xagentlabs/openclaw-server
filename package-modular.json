@@ -1,0 +1,70 @@
+{
+  "name": "openclaw-server",
+  "version": "1.0.0",
+  "description": "Complete OpenClaw AI Chat Server with integrated web interface and chat history",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "server": "node server-agent-based.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server-agent-based.js",
+    "update": "git pull origin main && npm install",
+    "build": "npm run build:js && npm run build:css",
+    "build:js": "uglifyjs src/**/*.js -o dist/bundle.js --compress --mangle",
+    "build:css": "cleancss -o dist/style.css src/styles/*.css"
+  },
+  "keywords": [
+    "openclaw",
+    "web-interface",
+    "websocket",
+    "ai",
+    "chat",
+    "chat-history",
+    "ui",
+    "modular"
+  ],
+  "author": "OpenClaw Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "uglify-js": "^3.17.4",
+    "clean-css-cli": "^5.6.2"
+  },
+  "openclaw": {
+    "projectType": "web-server",
+    "preferredEditor": "vscode",
+    "files": {
+      "mainServer": "server-agent-based.js",
+      "frontend": "index-modular.html",
+      "config": "package.json",
+      "modules": "src/"
+    },
+    "development": {
+      "watchFiles": ["*.html", "*.js", "*.css", "src/**/*"],
+      "autoReload": true,
+      "debugMode": true
+    },
+    "deployment": {
+      "port": 8000,
+      "staticDir": ".",
+      "startupScript": "server-agent-based.js"
+    },
+    "workflow": {
+      "updateCommand": "./update-plugin.sh",
+      "restartCommand": "./update-and-restart-server.sh",
+      "backupEnabled": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xagentlabs/openclaw-server"
+  },
+  "bugs": {
+    "url": "https://github.com/0xagentlabs/openclaw-server/issues"
+  },
+  "homepage": "https://github.com/0xagentlabs/openclaw-server#readme"
+}

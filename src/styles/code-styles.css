@@ -1,0 +1,184 @@
+/* 
+ * Code Block Styles
+ * Syntax highlighting for code blocks in chat messages
+ */
+
+/* Code block container */
+pre {
+  background: #2d2d2d;
+  color: #f8f8f2;
+  padding: 16px;
+  border-radius: 8px;
+  overflow: auto;
+  margin: 10px 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Inline code */
+code {
+  background: #f0f0f0;
+  color: #d6336c;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+}
+
+/* Language-specific syntax highlighting */
+.language-javascript,
+.language-js {
+  color: #f1e05a;
+}
+
+.language-python,
+.language-py {
+  color: #3572a5;
+}
+
+.language-java {
+  color: #b07219;
+}
+
+.language-go,
+.language-golang {
+  color: #00add8;
+}
+
+.language-html {
+  color: #e44d26;
+}
+
+.language-css {
+  color: #563d7c;
+}
+
+.language-json {
+  color: #86b4e6;
+}
+
+.language-bash,
+.language-shell,
+.language-sh {
+  color: #89e051;
+}
+
+.language-typescript,
+.language-ts {
+  color: #2b7489;
+}
+
+.language-cpp,
+.language-c {
+  color: #f34b7d;
+}
+
+.language-rust,
+.language-rs {
+  color: #dea584;
+}
+
+.language-swift {
+  color: #ffac45;
+}
+
+.language-kotlin,
+.language-kt {
+  color: #f88a3d;
+}
+
+.language-yaml,
+.language-yml {
+  color: #cb171e;
+}
+
+.language-markdown,
+.language-md {
+  color: #083fa1;
+}
+
+/* Syntax highlighting elements */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #6272a4;
+}
+
+.token.punctuation {
+  color: #f8f8f2;
+}
+
+.token.namespace {
+  color: #f8f8f2;
+}
+
+.token.property,
+.token.tag,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #ff79c6;
+}
+
+.token.boolean,
+.token.number {
+  color: #bd93f9;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #50fa7b;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string,
+.token.variable {
+  color: #f8f8f2;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.function,
+.token.class-name {
+  color: #f1fa8c;
+}
+
+.token.keyword {
+  color: #ff79c6;
+}
+
+.token.regex,
+.token.important {
+  color: #ffb86c;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+.token.entity {
+  cursor: help;
+}

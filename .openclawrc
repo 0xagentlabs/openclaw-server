@@ -1,0 +1,55 @@
+{
+  "projectName": "openclaw-server",
+  "version": "1.0.0",
+  "type": "web-interface-server",
+  "entryPoints": [
+    "server-agent-based.js",
+    "index.html"
+  ],
+  "sourceDirs": [
+    "."
+  ],
+  "build": {
+    "outputDir": "./dist",
+    "exclude": [
+      "node_modules",
+      ".git",
+      "*.log",
+      "package-lock.json"
+    ]
+  },
+  "development": {
+    "primaryLanguage": "javascript",
+    "framework": "express-websocket",
+    "preferredTools": [
+      "npm",
+      "node",
+      "express",
+      "ws"
+    ],
+    "commonTasks": {
+      "startDev": "node server-agent-based.js",
+      "installDeps": "npm install",
+      "updateProject": "git pull origin main && npm install"
+    }
+  },
+  "editingPreferences": {
+    "indentation": 2,
+    "lineLength": 120,
+    "formatting": "standard",
+    "fileOrder": [
+      "index.html",
+      "server-agent-based.js",
+      "package.json",
+      "README.md"
+    ]
+  },
+  "workflow": {
+    "updateScript": "/root/.openclaw/workspace/update-plugin.sh",
+    "restartScript": "/root/.openclaw/workspace/update-and-restart-server.sh",
+    "deployment": {
+      "targetDir": "/root/.openclaw/plugins/openclaw-server/",
+      "syncOnChange": true
+    }
+  }
+}

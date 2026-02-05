@@ -413,5 +413,31 @@
   <script src="src/components/chat-history.js"></script>
   <script src="src/services/websocket-service.js"></script>
   <script src="src/app.js"></script>
+  
+  <script>
+    // Initialize the app when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Initialize with a default chat if none exists
+        window.app = new OpenClawApp();
+        console.log('OpenClaw App initialized successfully');
+      } catch (error) {
+        console.error('Error initializing OpenClaw App:', error);
+      }
+    });
+
+    // Also try to initialize immediately if DOM is already loaded
+    if (document.readyState === 'loading') {
+      // Still loading, DOMContentLoaded will handle it
+    } else {
+      // Already loaded, initialize immediately
+      try {
+        window.app = new OpenClawApp();
+        console.log('OpenClaw App initialized immediately');
+      } catch (error) {
+        console.error('Error initializing OpenClaw App:', error);
+      }
+    }
+  </script>
 </body>
 </html>

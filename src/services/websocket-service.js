@@ -4,8 +4,7 @@
  */
 
 class WebSocketService {
-  constructor(url) {
-    this.url = url;
+  constructor() {
     this.socket = null;
     this.isConnected = false;
     this.eventHandlers = {};

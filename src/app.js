@@ -40,6 +40,12 @@ class OpenClawApp {
 
   async init() {
     try {
+      // Initialize with a default chat if none exists
+      if (!this.currentChatId) {
+        this.currentChatId = this.utils.generateId();
+        this.currentChatTitle = '新对话';
+      }
+      
       // Load chat history
       this.loadChatHistory();
       
